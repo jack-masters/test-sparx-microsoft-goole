@@ -1,32 +1,35 @@
 const express = require('express');
 const path = require('path');
-const app = express();
 
+const app = express();
 const PORT = 3000;
 
-// Serve static frontend
+// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// OAuth start route (can also be hardcoded in frontend)
-app.get('/oauth/start', (req, res) => {
-  const state = Math.random().toString(36).substring(2, 15);
-  const params = new URLSearchParams({
-    client_id: '8f223305-ba91-4a6d-a188-46eee4c33296',
-    redirect_uri: 'http://localhost:3000/oauth2/callback',
-    response_type: 'code',
-    scope: 'openid profile email',
-    prompt: 'select_account',
-    hd: '*',
-    state
-  });
+// Configuration - no server-side OAuth needed for this approach
+const config = {
+  clientId: '8f223305-ba91-4a6d-a188-46eee4c33296',
+  sparxCallback: 'https://auth.sparx-learning.com/oauth2/callback'
+};
 
-  const authUrl = `https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?${params.toString()}`;
-  res.redirect(authUrl);
+// Serve the bypass page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Callback route served to Microsoft
-app.get('/oauth2/callback', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'callback.html'));
+// Optional: Endpoint to get the auth URL (if you want to construct it server-side)
+app.get('/auth-url', (req, res) => {
+  const params = new URLSearchParams({
+    client_id: config.clientId,
+    redirect_uri: config.sparxCallback,
+    response_type: 'token',
+    scope: 'openid profile email',
+    prompt: 'select_account'
+  });
+  
+  const authUrl = `https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize?${params}`;
+  res.json({ authUrl });
 });
 
 app.listen(PORT, () => {
