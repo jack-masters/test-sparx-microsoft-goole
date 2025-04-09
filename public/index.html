@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OAuth Test</title>
+</head>
+<body>
+  <h1>Login with Microsoft</h1>
+  <button onclick="startOAuth()">Login</button>
+  <p id="result"></p>
+
+  <script>
+    function startOAuth() {
+      const popup = window.open('/oauth/start', 'oauthPopup', 'width=600,height=700');
+
+      window.addEventListener('message', (event) => {
+        // Optional: validate origin
+        if (!event.origin.includes('localhost')) return;
+
+        console.log('OAuth Redirect URL:', event.data);
+        document.getElementById('result').innerText = 'Redirected to: ' + event.data;
+      });
+    }
+  </script>
+</body>
+</html>
